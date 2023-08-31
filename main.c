@@ -25,6 +25,8 @@
 size_t slider_count = 0;
 size_t active_slider = 0;
 
+typedef void (*Slider_Background_Func)(UI_Rect rect);
+
 typedef struct {
     float value;
     size_t id;
@@ -59,37 +61,29 @@ void data_callback(ma_device *device, void *output, const void *input, ma_uint32
     audio_volume = sqrtf(sum / (float) count);
 }
 
-void avatar_widget(
-    UI_Rect rect,
-    Texture2D idle,
-    Texture2D speaking,
-    float speak_audio_volume,
-    float scale)
-{
+void avatar_widget(UI_Rect rect, Texture2D idle, Texture2D speaking, float volume_threshold, float scale) {
     Vector2 pos = {
         rect.x + (rect.w - (idle.width * scale)) / 2,
         rect.y + (rect.h - (idle.height * scale)) / 2,
     };
 
-    Texture2D texture = (audio_volume >= speak_audio_volume) ? speaking : idle;
+    Texture2D texture = (audio_volume >= volume_threshold) ? speaking : idle;
     DrawRectangle(rect.x, rect.y, rect.w, rect.h, PURE_GREEN);
     DrawTextureEx(texture, pos, 0, scale, WHITE);
 }
 
-typedef void (*Slider_Background_Func)(UI_Rect rect);
-
 void slider_widget(UI_Rect rect, Slider *slider, Slider_Background_Func func) {
     float slider_factor = 0.65f; // From 0 to 1
     float slider_width = rect.w * slider_factor;
-    int rect_base_size = 12;
+    int tri_base_size = 12;
 
     int mark = rect.h - (rect.h * slider->value);
 
     UI_Rect slider_rect = { rect.x, rect.y, slider_width, rect.h };
 
     Vector2 p1 = { rect.x + slider_width, rect.y + mark };
-    Vector2 p2 = { p1.x + rect.w - slider_width, p1.y - rect_base_size };
-    Vector2 p3 = { p1.x + rect.w - slider_width, p1.y + rect_base_size };
+    Vector2 p2 = { p1.x + rect.w - slider_width, p1.y - tri_base_size };
+    Vector2 p3 = { p1.x + rect.w - slider_width, p1.y + tri_base_size };
 
     Vector2 mouse = GetMousePosition();
 
